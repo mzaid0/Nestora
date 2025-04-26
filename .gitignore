@@ -1,0 +1,13 @@
+# Node
+node_modules/
+dist/
+
+# Env files
+.env
+
+# Vite/React client
+client/node_modules/
+client/dist/
+
+# OS / misc
+.DS_Store
