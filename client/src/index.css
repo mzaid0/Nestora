@@ -9,6 +9,8 @@
   --font-poppins: Poppins, "sans-serif";
 }
 
+
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -116,11 +118,13 @@
   --sidebar-ring: oklch(0.553 0.013 58.071);
 }
 
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-poppins);
   }
 }
