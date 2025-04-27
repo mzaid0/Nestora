@@ -30,7 +30,6 @@ const formSchema = z
       .string()
       .min(2, { message: "Name must be at least 2 characters long" }),
     email: z.string().email({ message: "Invalid email address" }),
-    phone: z.string().min(10, { message: "Phone number must be valid" }),
     password: z
       .string()
       .min(6, { message: "Password must be at least 6 characters long" })
@@ -48,7 +47,6 @@ export default function Signup() {
     defaultValues: {
       name: "",
       email: "",
-      phone: "",
       password: "",
       confirmPassword: "",
     },
