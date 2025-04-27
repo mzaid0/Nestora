@@ -6,6 +6,13 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+app.use(express.json());
+
+//Routes
+import authRouter from "./routes/auth-route.js";
+
+app.use("/api/v1", authRouter);
+
 const startServer = async () => {
   try {
     await connectDb();
