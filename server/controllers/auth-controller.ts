@@ -37,7 +37,12 @@ export const signinUser = async (
   req: Request<{}, {}, IUser>,
   res: Response<{
     message: string;
-    user?: { id: string; username: string; email: string };
+    user?: {
+      username: string;
+      email: string;
+      createdAt: Date;
+      updatedAt: Date;
+    };
   }>
 ) => {
   try {
@@ -63,6 +68,8 @@ export const signinUser = async (
       id: user._id,
       username: user.username,
       email: user.email,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
     };
 
     res
