@@ -35,7 +35,10 @@ export const signupUser = async (
 
 export const signinUser = async (
   req: Request<{}, {}, IUser>,
-  res: Response<{ message: string }>
+  res: Response<{
+    message: string;
+    user?: { id: string; username: string; email: string };
+  }>
 ) => {
   try {
     const { username, password } = req.body;
@@ -56,6 +59,12 @@ export const signinUser = async (
       expiresIn: "1h",
     });
 
+    const safeUser = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+    };
+
     res
       .cookie("token", token, {
         httpOnly: true,
@@ -64,7 +73,7 @@ export const signinUser = async (
         maxAge: 1000 * 60 * 60,
       })
       .status(200)
-      .json({ message: "Signin successful" });
+      .json({ message: "Signin successful", user: safeUser });
   } catch (err) {
     console.error("Signin error:", err);
     res.status(500).json({ message: "Internal server error" });
