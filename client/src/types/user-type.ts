@@ -11,3 +11,8 @@ export interface SignupResponse {
   email: string;
   token: string;
 }
+
+export interface SignInRequest {
+  username: string;
+  password: string;
+}
