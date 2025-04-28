@@ -1,17 +1,11 @@
-import { Link } from "react-router-dom";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { z } from "zod";
 
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { signupApi } from "@/api/sign-up-api";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,20 +14,29 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
+import { IApiError } from "@/types/api-error-type";
 
-// Validation schema
+import { Loader2 } from "lucide-react";
+
+// Zod schema with 'username' instead of 'name'
 const formSchema = z
   .object({
-    name: z
-      .string()
-      .min(2, { message: "Name must be at least 2 characters long" }),
-    email: z.string().email({ message: "Invalid email address" }),
+    username: z.string().min(2, "Username must be at least 2 characters"),
+    email: z.string().email("Invalid email address"),
     password: z
       .string()
-      .min(6, { message: "Password must be at least 6 characters long" })
-      .regex(/[a-zA-Z0-9]/, { message: "Password must be alphanumeric" }),
+      .min(6, "Password must be at least 6 characters")
+      .regex(/[a-zA-Z0-9]/, "Password must be alphanumeric"),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -41,30 +44,47 @@ const formSchema = z
     message: "Passwords do not match",
   });
 
+type FormValues = z.infer<typeof formSchema>;
+
 export default function Signup() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const navigate = useNavigate();
+  const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
+      username: "",
       email: "",
       password: "",
       confirmPassword: "",
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      console.log(values);
-      toast(
-        <pre className="mt-2 w-full rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(values, null, 2)}</code>
-        </pre>
-      );
-    } catch (error) {
-      console.error("Form submission error", error);
-      toast.error("Failed to submit the form. Please try again.");
-    }
-  }
+  const { isPending, error, mutate, reset, isError } = useMutation({
+    mutationFn: signupApi,
+    mutationKey: ["signup"],
+    onSuccess: (data) => {
+      toast.success("Success", {
+        description: (
+          <span className="text-xs text-gray-600">{data.message}</span>
+        ),
+      });
+      navigate("/login");
+    },
+
+    onError: (error: IApiError) => {
+      toast.error("Error", {
+        description: (
+          <span className="text-xs text-gray-600">
+            {error.response?.data?.message || "Network Error"}
+          </span>
+        ),
+      });
+    },
+  });
+
+  const onSubmit = (values: FormValues) => {
+    reset();
+    mutate(values);
+  };
 
   return (
     <div className="flex min-h-[60vh] w-full items-center justify-center px-4">
@@ -78,18 +98,22 @@ export default function Signup() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+              {/* Display mutation error */}
+              {isError && (
+                <p className="text-red-600">{error?.response?.data?.message}</p>
+              )}
+
               <div className="grid gap-4">
-                {/* Name Field */}
+                {/* Username Field */}
                 <FormField
                   control={form.control}
-                  name="name"
+                  name="username"
                   render={({ field }) => (
                     <FormItem className="grid gap-2">
-                      <FormLabel htmlFor="name">Username</FormLabel>
+                      <FormLabel htmlFor="username">Username</FormLabel>
                       <FormControl>
                         <Input
-                          id="name"
-                          className="w-full"
+                          id="username"
                           placeholder="username"
                           {...field}
                         />
@@ -109,9 +133,8 @@ export default function Signup() {
                       <FormControl>
                         <Input
                           id="email"
-                          className="w-full"
-                          placeholder="abc@gmail.com"
                           type="email"
+                          placeholder="abc@gmail.com"
                           autoComplete="email"
                           {...field}
                         />
@@ -131,7 +154,6 @@ export default function Signup() {
                       <FormControl>
                         <PasswordInput
                           id="password"
-                          className="w-full"
                           placeholder="******"
                           autoComplete="new-password"
                           {...field}
@@ -154,7 +176,6 @@ export default function Signup() {
                       <FormControl>
                         <PasswordInput
                           id="confirmPassword"
-                          className="w-full"
                           placeholder="******"
                           autoComplete="new-password"
                           {...field}
@@ -165,14 +186,20 @@ export default function Signup() {
                   )}
                 />
               </div>
-              <Button type="submit" className="w-full">
-                Sign Up
+
+              <Button type="submit" disabled={isPending} className="w-full">
+                {isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : null}
+                Signup
               </Button>
             </form>
-            <Button variant="outline" className="w-full mt-2">
-              Continue with Google
-            </Button>
           </Form>
+
+          <Button variant="outline" className="w-full mt-2">
+            Continue with Google
+          </Button>
+
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}
             <Link to="/login" className="underline">
