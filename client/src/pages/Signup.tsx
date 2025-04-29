@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { IApiError } from "@/types/api-error-type";
 
+import OAuth from "@/components/page-components/OAuth";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z
@@ -195,9 +196,7 @@ export default function Signup() {
             </form>
           </Form>
 
-          <Button variant="outline" className="w-full mt-2">
-            Continue with Google
-          </Button>
+          <OAuth />
 
           <div className="mt-4 text-center text-sm">
             Already have an account?{" "}

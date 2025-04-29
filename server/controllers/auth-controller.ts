@@ -42,6 +42,7 @@ export const signinUser = async (
       email: string;
       createdAt: Date;
       updatedAt: Date;
+      avatar?: string;
     };
   }>
 ) => {
@@ -68,6 +69,7 @@ export const signinUser = async (
       id: user._id,
       username: user.username,
       email: user.email,
+      avatar: user.avatar,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };
@@ -81,6 +83,87 @@ export const signinUser = async (
       })
       .status(200)
       .json({ message: "Signin successful", user: safeUser });
+  } catch (err) {
+    console.error("Signin error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const googleController = async (
+  req: Request<{}, {}, IUser>,
+  res: Response<{
+    message: string;
+    user?: {
+      name?: string;
+      email: string;
+      createdAt: Date;
+      updatedAt: Date;
+      avatar?: string;
+    };
+  }>
+) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (user) {
+      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY!, {
+        expiresIn: "1h",
+      });
+      const safeUser = {
+        id: user._id,
+        username: user.username,
+        email: user.email,
+        avatar: user.avatar,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      };
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 1000 * 60 * 60,
+        })
+        .status(200)
+        .json({ message: "Signin successful", user: safeUser });
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const saltRounds = Number(process.env.HASHED_PASSWORD_SALT);
+
+      const hashedPassword = await bcrypt.hash(generatedPassword, saltRounds);
+
+      const newUser = new User({
+        username:
+          req.body.name.split(" ").join("").toLowerCase() +
+          Math.random().toString(36).slice(-4),
+        email: req.body.email,
+        avatar: req.body.avatar,
+        password: hashedPassword,
+      });
+
+      await newUser.save();
+      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET_KEY!, {
+        expiresIn: "1h",
+      });
+      const safeUser = {
+        id: newUser._id,
+        username: newUser.username,
+        email: newUser.email,
+        createdAt: newUser.createdAt,
+        updatedAt: newUser.updatedAt,
+      };
+      res
+        .cookie("token", token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: 1000 * 60 * 60,
+        })
+        .status(200)
+        .json({ message: "Signin successful", user: safeUser });
+    }
   } catch (err) {
     console.error("Signin error:", err);
     res.status(500).json({ message: "Internal server error" });

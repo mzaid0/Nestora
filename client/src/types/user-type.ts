@@ -21,6 +21,13 @@ export interface IUser {
   id: string;
   username: string;
   email: string;
+  avatar: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface IGoogleAuth {
+  name: string | null;
+  email: string | null;
+  avatar: string | null;
 }

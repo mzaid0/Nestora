@@ -20,9 +20,10 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { IApiError } from "@/types/api-error-type";
 
-import { Loader2 } from "lucide-react";
+import OAuth from "@/components/page-components/OAuth";
 import { useAppDispatch } from "@/hooks/redux-hooks";
 import { setUser } from "@/store/user/user-slice";
+import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
   username: z.string().min(2, "Username must be at least 2 characters"),
@@ -138,9 +139,7 @@ export default function Signin() {
             </form>
           </Form>
 
-          <Button variant="outline" className="w-full mt-2">
-            Continue with Google
-          </Button>
+          <OAuth />
 
           <div className="mt-4 text-center text-sm">
             Don't have an account?{" "}
