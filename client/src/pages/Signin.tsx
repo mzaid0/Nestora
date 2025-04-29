@@ -21,6 +21,8 @@ import { PasswordInput } from "@/components/ui/password-input";
 import { IApiError } from "@/types/api-error-type";
 
 import { Loader2 } from "lucide-react";
+import { useAppDispatch } from "@/hooks/redux-hooks";
+import { setUser } from "@/store/user/user-slice";
 
 const formSchema = z.object({
   username: z.string().min(2, "Username must be at least 2 characters"),
@@ -34,6 +36,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function Signin() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -46,6 +49,7 @@ export default function Signin() {
     mutationFn: signinApi,
     mutationKey: ["signin"],
     onSuccess: (data) => {
+      dispatch(setUser(data.user));
       toast.success("Success", {
         description: (
           <span className="text-xs text-gray-600">{data.message}</span>
