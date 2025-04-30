@@ -1,11 +1,30 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { IoMdSearch } from "react-icons/io";
-import { HiOutlineMenu, HiX } from "react-icons/hi";
-import { useAppSelector, useAppDispatch } from "@/hooks/redux-hooks";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux-hooks";
 import { clearUser } from "@/store/user/user-slice";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { User, LayoutDashboard, LogOut } from "lucide-react";
+import {
+  Bolt,
+  Layers2,
+  LogOut,
+  Home,
+  List,
+  Users,
+  Phone,
+  Heart,
+  LayoutDashboard,
+} from "lucide-react";
+import { useState } from "react";
+import { HiOutlineMenu, HiX } from "react-icons/hi";
+import { IoMdSearch } from "react-icons/io";
+import { Link } from "react-router-dom";
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -13,6 +32,26 @@ export default function Header() {
   const dispatch = useAppDispatch();
 
   const defaultAvatar = "/avatar-placeholder.png";
+
+  const navLinks = user
+    ? ([
+        "Home",
+        "Listings",
+        "Agents",
+        "Contact",
+        "Favorites",
+        "Dashboard",
+      ] as const)
+    : (["Home", "Listings", "Agents", "Contact"] as const);
+
+  const navIcons = {
+    Home: Home,
+    Listings: List,
+    Agents: Users,
+    Contact: Phone,
+    Favorites: Heart,
+    Dashboard: LayoutDashboard,
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md shadow-md">
@@ -47,57 +86,76 @@ export default function Header() {
               className="relative group text-gray-700 hover:text-red-700 transition"
             >
               {label}
-              <span
-                className="absolute left-0 -bottom-0.5 h-0.5 w-full bg-red-700
-                               transform scale-x-0 group-hover:scale-x-100
-                               transition-transform origin-left"
-              />
+              <span className="absolute left-0 -bottom-0.5 h-0.5 w-full bg-red-700 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
             </Link>
           ))}
 
           {user ? (
-            // Profile hover-dropdown
-            <div className="relative group">
-              <Avatar>
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback>CN</AvatarFallback>
-              </Avatar>
-
-              {/* Dropdown */}
-              <div
-                className="
-      absolute right-0 mt-2 w-48 text-sm
-      bg-white rounded-lg shadow-xl
-      divide-y divide-gray-100
-      opacity-0 group-hover:opacity-100
-      translate-y-2 group-hover:translate-y-0
-      transform transition-all duration-200
-      z-50
-    "
-              >
-                <Link
-                  to="/profile"
-                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="outline"
+                  aria-label="Open account menu"
                 >
-                  <User className="w-5 h-5 mr-2 text-gray-500" />
-                  Profile
-                </Link>
-                <Link
-                  to="/dashboard"
-                  className="flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
-                >
-                  <LayoutDashboard className="w-5 h-5 mr-2 text-gray-500" />
-                  Dashboard
-                </Link>
-                <button
-                  onClick={() => dispatch(clearUser())}
-                  className="w-full flex items-center px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
-                >
-                  <LogOut className="w-5 h-5 mr-2 text-gray-500" />
-                  Logout
-                </button>
-              </div>
-            </div>
+                  <img
+                    src={user.avatar || defaultAvatar}
+                    alt={user.username}
+                    className="rounded-full"
+                  />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="max-w-64">
+                <DropdownMenuLabel className="flex items-start gap-3">
+                  <img
+                    src={user.avatar || defaultAvatar}
+                    alt="Avatar"
+                    width={32}
+                    height={32}
+                    className="shrink-0 rounded-full"
+                  />
+                  <div className="flex min-w-0 flex-col">
+                    <span className="truncate text-sm font-medium text-foreground">
+                      {user.username}
+                    </span>
+                    <span className="truncate text-xs font-normal text-muted-foreground">
+                      {user.email}
+                    </span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <Bolt
+                      size={16}
+                      strokeWidth={2}
+                      className="opacity-60"
+                      aria-hidden="true"
+                    />
+                    <Link to="/profile">Profile</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Layers2
+                      size={16}
+                      strokeWidth={2}
+                      className="opacity-60"
+                      aria-hidden="true"
+                    />
+                    <Link to="/dashboard">Dashboard</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => dispatch(clearUser())}>
+                  <LogOut
+                    size={16}
+                    strokeWidth={2}
+                    className="opacity-60"
+                    aria-hidden="true"
+                  />
+                  <span>Logout</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
             <>
               <Link
@@ -105,11 +163,7 @@ export default function Header() {
                 className="relative group text-gray-700 hover:text-red-700 transition"
               >
                 Sign In
-                <span
-                  className="absolute left-0 -bottom-0.5 h-0.5 w-full bg-red-700
-                                 transform scale-x-0 group-hover:scale-x-100
-                                 transition-transform origin-left"
-                />
+                <span className="absolute left-0 -bottom-0.5 h-0.5 w-full bg-red-700 transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left" />
               </Link>
               <Link
                 to="/signup"
@@ -134,53 +188,82 @@ export default function Header() {
       {/* Mobile panel */}
       {mobileOpen && (
         <nav className="md:hidden bg-white shadow-inner">
-          {["Home", "Listings", "Agents", "Contact"].map((label) => (
-            <Link
-              key={label}
-              to={`/${label.toLowerCase()}`}
-              className="block px-4 py-3 border-b border-gray-200 text-gray-700 hover:bg-gray-100 transition"
-            >
-              {label}
-            </Link>
-          ))}
+          {/* Search bar */}
+          <div className="px-4 py-3 border-b border-gray-200">
+            <div className="relative">
+              <IoMdSearch
+                size={20}
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              />
+              <input
+                type="text"
+                placeholder="Search by city or zip"
+                className="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-700 transition"
+              />
+            </div>
+          </div>
 
-          {user ? (
-            <>
-              <Link
-                to="/favorites"
-                className="block px-4 py-3 border-b border-gray-200 hover:bg-gray-100 transition"
-              >
-                Favorites
-              </Link>
-              <Link
-                to="/profile"
-                className="flex items-center px-4 py-3 border-b border-gray-200 hover:bg-gray-100 transition"
-              >
+          {/* User profile (logged-in only) */}
+          {user && (
+            <Link
+              to="/profile"
+              className="block px-4 py-3 border-b border-gray-200"
+              onClick={() => setMobileOpen(false)}
+            >
+              <div className="flex items-center">
                 <img
                   src={user.avatar || defaultAvatar}
                   alt="Profile"
-                  className="h-8 w-8 rounded-full object-cover mr-2 border-2 border-red-700"
+                  className="h-10 w-10 rounded-full object-cover mr-3"
                 />
-                Profile
-              </Link>
-              <button
-                onClick={() => dispatch(clearUser())}
-                className="w-full text-left px-4 py-3 hover:bg-gray-100 transition"
+                <div>
+                  <p className="font-medium">{user.username}</p>
+                  <p className="text-sm text-gray-500">{user.email}</p>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* Navigation links */}
+          {navLinks.map((label) => {
+            const Icon = navIcons[label];
+            return (
+              <Link
+                key={label}
+                to={`/${label.toLowerCase()}`}
+                className="flex items-center px-4 py-3 border-b border-gray-200 text-gray-700 hover:bg-gray-100 transition"
+                onClick={() => setMobileOpen(false)}
               >
-                Logout
-              </button>
-            </>
+                {Icon && <Icon size={20} className="mr-2" />}
+                {label}
+              </Link>
+            );
+          })}
+
+          {/* User options */}
+          {user ? (
+            <button
+              onClick={() => {
+                dispatch(clearUser());
+                setMobileOpen(false);
+              }}
+              className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-100 transition"
+            >
+              Logout
+            </button>
           ) : (
             <>
               <Link
                 to="/signin"
                 className="block px-4 py-3 border-b border-gray-200 text-gray-700 hover:bg-gray-100 transition"
+                onClick={() => setMobileOpen(false)}
               >
                 Sign In
               </Link>
               <Link
                 to="/signup"
                 className="block px-4 py-3 border-b border-gray-200 bg-red-700 text-white hover:bg-red-800 transition"
+                onClick={() => setMobileOpen(false)}
               >
                 Sign Up
               </Link>
