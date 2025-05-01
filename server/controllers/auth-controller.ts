@@ -3,6 +3,15 @@ import { User } from "../models/user-model";
 import { IUser } from "../types/user-type";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import path from "path";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 export const signupUser = async (
   req: Request<{}, {}, IUser>,
@@ -166,6 +175,72 @@ export const googleController = async (
     }
   } catch (err) {
     console.error("Signin error:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user!.id;
+
+    if (!userId) {
+      res.status(400).json({
+        message: "User not found",
+      });
+      return;
+    }
+
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      res.status(400).json({
+        message: "User not found",
+      });
+      return;
+    }
+
+    if (req.body.password) {
+      const saltRounds = Number(process.env.HASHED_PASSWORD_SALT);
+      req.body.password = await bcrypt.hash(req.body.password, saltRounds);
+    }
+
+    let avatarUrl = user.avatar;
+
+    if (req.file) {
+      const localPath = req.file.path;
+
+      try {
+        if (user.avatar) {
+          const publicId = user.avatar.split("/").pop()?.split(".")[0];
+          await cloudinary.uploader.destroy(publicId!);
+        }
+        const cloudinaryPath = await cloudinary.uploader.upload(localPath);
+        avatarUrl = cloudinaryPath.secure_url;
+        fs.unlinkSync(req.file.path);
+      } catch (error) {
+        console.log("Cloudinary Error:", error);
+        res.status(500).json({ message: "Internal server error" });
+      }
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      {
+        $set: {
+          username: req.body.username ?? user.username,
+          password: req.body.password ?? user.password,
+          avatar: avatarUrl,
+        },
+      },
+      { new: true }
+    );
+
+    res.status(200).json({
+      message: "User updated successfully",
+      updatedUser,
+    });
+  } catch (err) {
+    console.error("Updating error:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 };

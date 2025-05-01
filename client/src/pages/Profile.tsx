@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Camera, User } from "lucide-react";
+import { useAppSelector } from "@/hooks/redux-hooks";
 
 const formSchema = z.object({
   avatar: z
@@ -47,7 +48,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function AvatarUploadForm() {
-  const [preview, setPreview] = useState<string | null>(null);
+  const { user } = useAppSelector((state) => state.user);
+  const [preview, setPreview] = useState<string | null>(user?.avatar || null);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: { avatar: undefined },
@@ -159,6 +161,7 @@ export default function AvatarUploadForm() {
                       <Input
                         placeholder="Enter username"
                         className="focus-visible:ring-primary"
+                        defaultValue={user?.username}
                         {...field}
                       />
                     </FormControl>
@@ -178,6 +181,8 @@ export default function AvatarUploadForm() {
                         placeholder="you@example.com"
                         type="email"
                         className="focus-visible:ring-primary"
+                        defaultValue={user?.email}
+                        disabled
                         {...field}
                       />
                     </FormControl>
@@ -206,10 +211,7 @@ export default function AvatarUploadForm() {
             </div>
 
             <CardFooter className="px-0 pb-0 pt-6">
-              <Button
-                type="submit"
-                className="w-full"
-              >
+              <Button type="submit" className="w-full">
                 Save Changes
               </Button>
             </CardFooter>

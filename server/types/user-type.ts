@@ -1,3 +1,6 @@
+import { JwtPayload } from "jsonwebtoken";
+import { Document } from "mongoose";
+
 export interface IUser {
   name: any;
   username: string;
@@ -5,5 +8,15 @@ export interface IUser {
   password: string;
   createdAt: Date;
   updatedAt: Date;
-  avatar?:string
+  avatar?: string;
+}
+
+export type DecodedData = JwtPayload & { id: string };
+
+declare global {
+  namespace Express {
+    interface Request {
+      user?: IUser & Document;
+    }
+  }
 }
